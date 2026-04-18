@@ -123,6 +123,20 @@ export default function Page() {
     }
   };
 
+
+  const updateDeadline = async (id: number, value: string) => {
+    setData((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, deadline: value } : item
+      )
+    );
+  
+    await supabase
+      .from("milestones")
+      .update({ deadline: value })
+      .eq("id", id);
+  };
+
   if (locked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0b0f19] text-gray-100">
@@ -225,14 +239,24 @@ export default function Page() {
 
             <div>{item.title}</div>
 
-            <div className="flex items-center gap-2 text-sm font-medium text-gray-100">
-            <Calendar className="w-4 h-4 text-red-400" />
-            <div className="flex items-center gap-2 text-sm">
-                <span className="text-red-400">⏳</span>
-                <span className={timeMap[item.id] === "Expired" ? "text-red-500" : "text-gray-200"}>
-                  {timeMap[item.id]}
-                </span>
-              </div>
+            <div className="flex flex-col gap-1 text-sm">
+  
+            {/* TIMER */}
+            <div className="flex items-center gap-2">
+              <span className="text-red-400">⏳</span>
+              <span className={timeMap[item.id] === "Expired" ? "text-red-500" : "text-gray-200"}>
+                {timeMap[item.id]}
+              </span>
+            </div>
+
+            {/* EDIT DEADLINE */}
+            <input
+              type="date"
+              value={item.deadline.split("T")[0]} 
+              onChange={(e) => updateDeadline(item.id, e.target.value)}
+              className="text-xs bg-black border border-white/10 rounded px-1 py-0.5 text-gray-300"
+            />
+
           </div>
 
 
