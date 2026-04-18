@@ -94,6 +94,13 @@ export default function Page() {
     3: { label: "HARD", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/30" },
   };
 
+  const getStatus = (progress: number, deadline: string) => {
+    if (progress === 100) return { label: "DONE", color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/30" };
+    const expired = new Date(deadline).getTime() < Date.now();
+    if (expired) return { label: "EXPIRED", color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/30" };
+    return { label: "IN PROGRESS", color: "text-gray-400", bg: "bg-white/5", border: "border-white/10" };
+  };
+
   const progressStyle = (p: number) =>
     p < 30
       ? { row: "bg-red-500/5 border-red-500/30", bar: "bg-gradient-to-r from-red-600 to-red-400", pct: "text-red-400" }
@@ -160,7 +167,6 @@ export default function Page() {
         {/* ── ADD FORM ── */}
         <section className="bg-[#0e1320] border border-white/8 rounded-2xl p-4 sm:p-5 shadow-xl shadow-black/30">
           <h2 className="text-xs uppercase tracking-widest text-gray-500 mb-4">Add Milestone</h2>
-
           <div className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_auto_auto] gap-3">
             <input
               className="w-full bg-black/40 border border-white/10 text-gray-100 placeholder-gray-500 px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg focus:border-red-500/50 focus:outline-none transition-colors"
@@ -169,14 +175,12 @@ export default function Page() {
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && add()}
             />
-
             <input
               type="date"
               value={deadline}
               onChange={(e) => setDeadline(e.target.value)}
               className="w-full sm:w-auto bg-black/40 border border-white/10 text-gray-300 px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg focus:border-red-500/50 focus:outline-none transition-colors scheme-dark"
             />
-
             <select
               className="w-full sm:w-auto bg-black/40 border border-white/10 text-gray-300 px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg focus:border-red-500/50 focus:outline-none transition-colors"
               value={difficulty}
@@ -186,7 +190,6 @@ export default function Page() {
               <option value={2}>Medium</option>
               <option value={3}>Hard</option>
             </select>
-
             <button
               onClick={add}
               className="w-full sm:w-auto bg-red-500 hover:bg-red-600 active:scale-95 text-white text-sm sm:text-base font-semibold px-8 py-2.5 sm:py-3 rounded-lg transition-all"
@@ -196,13 +199,14 @@ export default function Page() {
           </div>
         </section>
 
-        {/* ── DESKTOP TABLE HEADER (hidden on mobile) ── */}
-        <div className="hidden sm:grid sm:grid-cols-[2fr_1.4fr_1.8fr_0.6fr_0.9fr_0.4fr] gap-4 px-6 text-xs uppercase tracking-widest text-gray-500">
-          <span>Milestone</span>
-          <span>Time Left</span>
-          <span>Progress</span>
+        {/* ── DESKTOP TABLE HEADER ── */}
+        <div className="hidden sm:grid sm:grid-cols-[2fr_1.4fr_1.8fr_0.6fr_0.9fr_0.9fr_0.4fr] gap-4 px-6 text-xs uppercase tracking-widest text-gray-500">
+          <span className="text-center">Milestone</span>
+          <span className="text-center">Time Left</span>
+          <span className="text-center">Progress</span>
           <span className="text-center">%</span>
-          <span>Difficulty</span>
+          <span className="text-center">Difficulty</span>
+          <span className="text-center">Status</span>
           <span className="text-right">Del</span>
         </div>
 
@@ -216,6 +220,7 @@ export default function Page() {
             {data.map((item) => {
               const ps = progressStyle(item.progress);
               const dc = difficultyConfig[item.difficulty as 1 | 2 | 3];
+              const sc = getStatus(item.progress, item.deadline);
               return (
                 <div
                   key={item.id}
@@ -223,7 +228,6 @@ export default function Page() {
                 >
                   {/* ── MOBILE LAYOUT ── */}
                   <div className="sm:hidden p-4 space-y-3">
-                    {/* Row 1: title + badge + delete */}
                     <div className="flex items-start justify-between gap-2">
                       <span className="font-semibold text-sm text-gray-100 leading-snug flex-1">
                         {item.title}
@@ -231,6 +235,9 @@ export default function Page() {
                       <div className="flex items-center gap-2 shrink-0">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${dc.color} ${dc.bg} ${dc.border}`}>
                           {dc.label}
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${sc.color} ${sc.bg} ${sc.border}`}>
+                          {sc.label}
                         </span>
                         <button
                           onClick={() => remove(item.id)}
@@ -240,8 +247,6 @@ export default function Page() {
                         </button>
                       </div>
                     </div>
-
-                    {/* Row 2: timer + deadline */}
                     <div className="flex items-center gap-3 flex-wrap">
                       <div className="flex items-center gap-1.5">
                         <span className="text-red-400 text-sm">⏳</span>
@@ -256,8 +261,6 @@ export default function Page() {
                         className="text-xs bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-gray-400 focus:outline-none focus:border-red-500/40 scheme-dark"
                       />
                     </div>
-
-                    {/* Row 3: slider + pct */}
                     <div className="flex items-center gap-3">
                       <input
                         type="range"
@@ -271,8 +274,6 @@ export default function Page() {
                         {item.progress}%
                       </span>
                     </div>
-
-                    {/* Progress bar */}
                     <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-300 ${ps.bar}`}
@@ -281,11 +282,9 @@ export default function Page() {
                     </div>
                   </div>
 
-                  <div className="hidden sm:grid sm:grid-cols-[2fr_1.4fr_1.8fr_0.6fr_0.9fr_0.4fr] items-center gap-4 px-6 py-4">
-                    {/* Title */}
+                  {/* ── DESKTOP LAYOUT ── */}
+                  <div className="hidden sm:grid sm:grid-cols-[2fr_1.4fr_1.8fr_0.6fr_0.9fr_0.9fr_0.4fr] items-center gap-4 px-6 py-4">
                     <span className="font-semibold text-base text-gray-100 truncate">{item.title}</span>
-
-                    {/* Timer + date */}
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
                         <span className="text-red-400 text-sm">⏳</span>
@@ -300,8 +299,6 @@ export default function Page() {
                         className="text-xs bg-black/40 border border-white/10 rounded px-2 py-1 text-gray-400 focus:outline-none focus:border-red-500/40 scheme-dark w-fit"
                       />
                     </div>
-
-                    {/* Slider + bar */}
                     <div className="flex flex-col gap-2">
                       <input
                         type="range"
@@ -318,18 +315,15 @@ export default function Page() {
                         />
                       </div>
                     </div>
-
-                    {/* Percentage */}
                     <div className="flex justify-center">
                       <span className={`text-base font-bold ${ps.pct}`}>{item.progress}%</span>
                     </div>
-
-                    {/* Difficulty */}
                     <span className={`text-xs font-bold px-3 py-1.5 rounded border text-center ${dc.color} ${dc.bg} ${dc.border}`}>
                       {dc.label}
                     </span>
-
-                    {/* Delete */}
+                    <span className={`text-xs font-bold px-3 py-1.5 rounded border text-center ${sc.color} ${sc.bg} ${sc.border}`}>
+                      {sc.label}
+                    </span>
                     <div className="flex justify-end">
                       <button
                         onClick={() => remove(item.id)}
