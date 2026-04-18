@@ -180,7 +180,7 @@ export default function Page() {
       {/* HEADER */}
       <div className="mb-6 border-b border-red-500/20 pb-3">
         <h1 className="text-xl text-red-400 uppercase tracking-widest">
-          Milestones
+        📅 Milestones
         </h1>
       </div>
 
@@ -307,7 +307,7 @@ export default function Page() {
 
             </div>
 
-            <button onClick={() => remove(item.id)}>🗑</button>
+            <button onClick={() => remove(item.id)}>🗑️</button>
 
           </div>
         ))}
