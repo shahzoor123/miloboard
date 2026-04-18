@@ -202,7 +202,7 @@ export default function Page() {
         {/* ── DESKTOP TABLE HEADER ── */}
         <div className="hidden sm:grid sm:grid-cols-[2fr_1.4fr_1.8fr_0.6fr_0.9fr_0.9fr_0.4fr] gap-4 px-6 text-xs uppercase tracking-widest text-gray-500">
           <span className="text-center">Milestone</span>
-          <span className="text-center">Time Left</span>
+          <span>Time Left</span>
           <span className="text-center">Progress</span>
           <span className="text-center">%</span>
           <span className="text-center">Difficulty</span>
