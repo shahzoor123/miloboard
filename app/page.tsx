@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/subabase";
+import Timeline from "../components/Timeline";
+
 
 type Item = {
   id: number;
@@ -20,6 +22,7 @@ export default function Page() {
   const [pin, setPin] = useState("");
   const [locked, setLocked] = useState(true);
   const CODE = "0001";
+  const [showTimeline, setShowTimeline] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -156,9 +159,17 @@ export default function Page() {
               Milestones
             </h1>
           </div>
+          <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500 bg-white/5 px-3 py-1 rounded-full border border-white/10">
             {data.length} task{data.length !== 1 ? "s" : ""}
           </span>
+          <button
+            onClick={() => setShowTimeline(!showTimeline)}
+            className="text-xs text-gray-500 hover:text-red-400 bg-white/5 px-3 py-1 rounded-full border border-white/10 transition-colors"
+          >
+            {showTimeline ? "✕ Timeline" : "📊 Timeline"}
+          </button>
+        </div>
         </div>
       </header>
 
@@ -198,6 +209,12 @@ export default function Page() {
             </button>
           </div>
         </section>
+
+        {showTimeline && (
+          <section className="bg-[#0e1320] border border-white/8 rounded-2xl p-4 sm:p-5 shadow-xl shadow-black/30">
+            <Timeline />
+          </section>
+        )}
 
         {/* ── DESKTOP TABLE HEADER ── */}
         <div className="hidden sm:grid sm:grid-cols-[2fr_1.4fr_1.8fr_0.6fr_0.9fr_0.9fr_0.4fr] gap-4 px-6 text-xs uppercase tracking-widest text-gray-500">
