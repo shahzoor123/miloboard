@@ -24,6 +24,26 @@ export default function Page() {
   const CODE = "0001";
   const [showTimeline, setShowTimeline] = useState(false);
 
+  // ── inline title editing ──────────────────────────────────────────────────
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+
+  const startEdit = (item: Item) => {
+    setEditingId(item.id);
+    setEditDraft(item.title);
+  };
+
+  const commitEdit = async (id: number) => {
+    const trimmed = editDraft.trim();
+    if (!trimmed) { setEditingId(null); return; }
+    setData((prev) => prev.map((item) => (item.id === id ? { ...item, title: trimmed } : item)));
+    await supabase.from("milestones").update({ title: trimmed }).eq("id", id);
+    setEditingId(null);
+  };
+
+  const cancelEdit = () => setEditingId(null);
+  // ─────────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
@@ -111,6 +131,37 @@ export default function Page() {
       ? { row: "bg-amber-500/5 border-amber-500/30", bar: "bg-gradient-to-r from-amber-600 to-amber-400", pct: "text-amber-400" }
       : { row: "bg-emerald-500/5 border-emerald-500/30", bar: "bg-gradient-to-r from-emerald-600 to-emerald-400", pct: "text-emerald-400" };
 
+  // ── reusable inline title editor ─────────────────────────────────────────
+
+  const TitleCell = ({ item, className }: { item: Item; className?: string }) => {
+    if (editingId === item.id) {
+      return (
+        <input
+          autoFocus
+          value={editDraft}
+          onChange={(e) => setEditDraft(e.target.value)}
+          onBlur={() => commitEdit(item.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitEdit(item.id);
+            if (e.key === "Escape") cancelEdit();
+          }}
+          className={`bg-black/60 border border-red-500/50 rounded-lg px-2 py-1 text-gray-100 focus:outline-none focus:border-red-500 font-semibold transition-colors w-full ${className ?? ""}`}
+        />
+      );
+    }
+    return (
+      <span
+        onClick={() => startEdit(item)}
+        title="Click to edit title"
+        className={`cursor-text hover:text-white transition-colors border-b border-dashed border-white/20 hover:border-white/40 ${className ?? ""}`}
+      >
+        {item.title}
+      </span>
+    );
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   if (locked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#080c14] px-4">
@@ -160,16 +211,16 @@ export default function Page() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500 bg-white/5 px-3 py-1 rounded-full border border-white/10">
-            {data.length} task{data.length !== 1 ? "s" : ""}
-          </span>
-          <button
-            onClick={() => setShowTimeline(!showTimeline)}
-            className="text-xs text-gray-500 hover:text-red-400 bg-white/5 px-3 py-1 rounded-full border border-white/10 transition-colors"
-          >
-            {showTimeline ? "✕ Timeline" : "📊 Timeline"}
-          </button>
-        </div>
+            <span className="text-xs text-gray-500 bg-white/5 px-3 py-1 rounded-full border border-white/10">
+              {data.length} task{data.length !== 1 ? "s" : ""}
+            </span>
+            <button
+              onClick={() => setShowTimeline(!showTimeline)}
+              className="text-xs text-gray-500 hover:text-red-400 bg-white/5 px-3 py-1 rounded-full border border-white/10 transition-colors"
+            >
+              {showTimeline ? "✕ Timeline" : "📊 Timeline"}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -246,9 +297,9 @@ export default function Page() {
                   {/* ── MOBILE LAYOUT ── */}
                   <div className="sm:hidden p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
-                      <span className="font-semibold text-sm text-gray-100 leading-snug flex-1">
-                        {item.title}
-                      </span>
+                      <div className="flex-1 font-semibold text-sm text-gray-100 leading-snug">
+                        <TitleCell item={item} className="text-sm" />
+                      </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${dc.color} ${dc.bg} ${dc.border}`}>
                           {dc.label}
@@ -301,7 +352,7 @@ export default function Page() {
 
                   {/* ── DESKTOP LAYOUT ── */}
                   <div className="hidden sm:grid sm:grid-cols-[2fr_1.4fr_1.8fr_0.6fr_0.9fr_0.9fr_0.4fr] items-center gap-4 px-6 py-4">
-                    <span className="font-semibold text-base text-gray-100 truncate">{item.title}</span>
+                    <TitleCell item={item} className="text-base" />
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
                         <span className="text-red-400 text-sm">⏳</span>
